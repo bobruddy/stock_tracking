@@ -1,3 +1,3 @@
-from display_all_tickers import server as application
+from stock_dashboard import server as application
 if __name__ == '__main__':
     application.run()
