@@ -98,6 +98,7 @@ for sym in tickers:
 app = dash.Dash()
 app.layout = html.Div( children=fig_list )
 #app.run_server(debug=True, use_reloader=True)  # Turn off reloader if inside Jupyter
+server = app.server
 if __name__ == '__main__':
     app.run_server(debug=True, port=8051) # or whatever you choose
 
