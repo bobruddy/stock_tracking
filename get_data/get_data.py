@@ -29,7 +29,6 @@ end_dt = date.today() + relativedelta(days=+1)
 makedirs('data', mode = 0o755, exist_ok=True)
 
 # setup sql connection
-#engine = create_engine('sqlite:///data/stocks.db', echo=False)
 con = sqlite3.connect('data/stocks.db')
 
 # create my tables if they don't exist
