@@ -15,7 +15,7 @@ import sqlite3
 # In[38]:
 
 
-db_file = '../data/stocks.db'
+db_file = 'data/stocks.db'
 
 
 # In[52]:
