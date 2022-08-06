@@ -5,9 +5,7 @@
 
 
 import pandas as pd
-from os.path import exists
 import plotly.graph_objects as go
-import plotly.io as pio
 from dateutil.relativedelta import relativedelta
 from datetime import date
 import dash
