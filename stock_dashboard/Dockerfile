@@ -8,6 +8,7 @@ RUN mkdir /working/data
 RUN mkdir /working/config
 COPY . build/
 COPY stock_dashboard.py /working
+COPY stock_dashboard.ini /working
 COPY wsgi.py /working
 RUN /bin/sh build/install.sh
 
