@@ -13,5 +13,5 @@ RUN /bin/sh build/install.sh
 
 # run update workflow
 WORKDIR /working
-CMD ["/usr/bin/python3", "wsgi.py"]
+CMD ["uwsgi", "stock_dashboard.ini"]
 #CMD /bin/sh -l
