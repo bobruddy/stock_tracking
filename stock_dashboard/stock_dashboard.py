@@ -15,7 +15,7 @@ import sqlite3
 # In[38]:
 
 
-db_file = 'data/stocks.db'
+db_file = '../data/stocks.db'
 
 
 # In[52]:
@@ -115,10 +115,3 @@ def update_figure( sym ):
 server = app.server
 if __name__ == '__main__':
     app.run_server(debug=True, port=8054, use_reloader=False)
-
-
-# In[ ]:
-
-
-
-
