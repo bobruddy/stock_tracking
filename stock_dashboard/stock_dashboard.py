@@ -10,6 +10,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import date
 from dash import dcc, html, Dash, Input, Output
 import sqlite3
+import os
 
 
 # In[38]:
@@ -91,7 +92,10 @@ def build_ma_graph( sym ):
 # In[59]:
 
 
-app = Dash(__name__)
+# get URL base
+base_url = os.getenv("DASH_BASE_PATHNAME", '/stocks/')
+
+app = Dash(__name__, url_base_pathname=base_url )
 
 app.layout = html.Div([
     dcc.Markdown('''
