@@ -16,7 +16,7 @@ from os import makedirs
 
 
 # eventually will put this in a config file. but good enough for now
-tickers = ['JPM', 'TSLA', 'SPY', 'BRK-B', 'INTC', 'SSO', 'ROM', 'AAPL', 'GME']
+tickers = ['JPM', 'TSLA', 'SPY', 'BRK-B', 'INTC', 'SSO', 'ROM', 'AAPL', 'GME', 'AMD']
 
 
 # In[3]:
