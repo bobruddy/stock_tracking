@@ -7,7 +7,7 @@
 import pandas as pd
 import plotly.graph_objects as go
 from dateutil.relativedelta import relativedelta
-from datetime import date
+from datetime import date, datetime
 from dash import dcc, html, Dash, Input, Output
 import sqlite3
 import os
@@ -36,17 +36,25 @@ con.close()
 
 
 def build_ma_graph( sym ):
-    # define 6 month default date range
-    end_dt = date.today()
-    start_dt = end_dt + relativedelta(months=-12)
-    graph_start_dt = end_dt + relativedelta(months=-12)
-    
-    # pull data from sqllite3
-    con = sqlite3.connect( db_file )
-    sql = 'select date, open, high, low, close from stocks where date >= "' + str(start_dt) + '" and ticker = "' + sym + '" order by date'
-    df = pd.read_sql_query(sql, con=con)
-    con.close()
-    
+
+    with sqlite3.connect( db_file ) as con:
+        # pull the max date
+        sql = 'select max(date) as date from stocks where ticker = ?'
+        cur = con.cursor()
+        cur.execute(sql,(sym,))
+        format = '%Y-%m-%d'
+        end_dt = cur.fetchone()[0].split(' ')[0]
+        end_dt = datetime.strptime(end_dt, format)
+
+        # define rest of dates
+        start_dt = end_dt + relativedelta(months=-6)
+        query_start_dt = start_dt + relativedelta(months=-3)
+        graph_start_dt = end_dt + relativedelta(months=-3)
+
+        # pull required data
+        sql = 'select date, open, high, low, close from stocks where date >= "' + str(query_start_dt) + '" and ticker = "' + sym + '" order by date'
+        df = pd.read_sql_query(sql, con=con)
+
     # clean up data
     df['date'] = df['date'].astype( 'datetime64' )
     df = df.set_index('date', drop=True)
@@ -54,10 +62,10 @@ def build_ma_graph( sym ):
     # build averages
     df['close_30day'] = df['close'].rolling(window=30).mean()
     df['close_60day'] = df['close'].rolling(window=60).mean()
-    df['close_90day'] = df['close'].rolling(window=90).mean()
+    #df['close_90day'] = df['close'].rolling(window=90).mean()
     
     # limit data
-    df = df.loc[graph_start_dt:]
+    df = df.loc[start_dt:]
     
     fig = go.Figure()
     fig = go.Figure(go.Ohlc(x=df.index,
@@ -65,26 +73,23 @@ def build_ma_graph( sym ):
         high=df['high'],
         low=df['low'],
         close=df['close'],
-        showlegend=True))
+        showlegend=False))
     
     fig.add_trace(go.Scatter(x=df.index, 
                          y=df['close_30day'], 
                          opacity=0.7, 
                          line=dict(color='blue', width=2), 
-                         name='MA 30'))
+                         name='MA 30',
+                         hoverinfo='skip'))
     fig.add_trace(go.Scatter(x=df.index, 
                          y=df['close_60day'], 
                          opacity=0.7, 
                          line=dict(color='orange', width=2), 
-                         name='MA 60'))
-    fig.add_trace(go.Scatter(x=df.index, 
-                         y=df['close_90day'], 
-                         opacity=0.7, 
-                         line=dict(color='red', width=2), 
-                         name='MA 90'))
-    fig.update_layout(title=sym + ' closing')
+                         name='MA 60',
+                         hoverinfo='skip'))
+    fig.update_layout(title=sym)
 
-    fig.update_layout(xaxis_range=[start_dt,
+    fig.update_layout(xaxis_range=[graph_start_dt,
                         end_dt ])
     return fig
 
