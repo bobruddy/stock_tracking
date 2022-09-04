@@ -87,8 +87,13 @@ def build_ma_graph( sym ):
                          line=dict(color='orange', width=2), 
                          name='MA 60',
                          hoverinfo='skip'))
-    fig.update_layout(title=sym)
 
+    # removes weekends
+    fig.update_xaxes(
+        rangebreaks=[ { 'pattern': 'day of week', 'bounds': [6, 1]} ]
+        )
+
+    fig.update_layout(title=sym)
     fig.update_layout(xaxis_range=[graph_start_dt,
                         end_dt ])
     return fig
