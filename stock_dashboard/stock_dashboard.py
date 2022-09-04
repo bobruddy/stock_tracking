@@ -23,18 +23,15 @@ db_file = './data/stocks.db'
 
 
 # make DB connection
-con = sqlite3.connect( db_file )
 
 # get ticker list
 tickers = []
-for row in con.execute('select ticker from stocks group by ticker order by ticker'):
-    tickers.append(row[0])
-con.close()
+with sqlite3.connect( db_file ) as con:
+    for row in con.execute('select ticker from stocks group by ticker order by ticker'):
+        tickers.append(row[0])
 
 
-# In[47]:
-
-
+# builds the main MA chart
 def build_ma_graph( sym ):
 
     with sqlite3.connect( db_file ) as con:
