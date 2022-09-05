@@ -5,7 +5,7 @@ from stock import Ticker
 import sys
 
 def main( tickers ):
-    db_file = 'dataa/stocks.db'
+    db_file = 'data/stocks.db'
 
     # get ticker list
     if len( tickers ) == 0:

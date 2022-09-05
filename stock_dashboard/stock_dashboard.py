@@ -11,7 +11,7 @@ import os
 from stock import Ticker,Tickers
 
 
-db_file = './dataa/stocks.db'
+db_file = './data/stocks.db'
 
 
 # get ticker list
