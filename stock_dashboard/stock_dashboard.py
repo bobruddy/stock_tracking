@@ -1,65 +1,40 @@
-#!/usr/bin/env python
-# coding: utf-8
+#!/usr/bin/env python3
 
-# In[37]:
+#import pandas as pd
+#import sqlite3
+#from datetime import date, datetime
 
-
-import pandas as pd
 import plotly.graph_objects as go
 from dateutil.relativedelta import relativedelta
-from datetime import date, datetime
 from dash import dcc, html, Dash, Input, Output
-import sqlite3
 import os
+from stock import Ticker,Tickers
 
 
-# In[38]:
+db_file = './dataa/stocks.db'
 
-
-db_file = './data/stocks.db'
-
-
-# In[52]:
-
-
-# make DB connection
 
 # get ticker list
-tickers = []
-with sqlite3.connect( db_file ) as con:
-    for row in con.execute('select ticker from stocks group by ticker order by ticker'):
-        tickers.append(row[0])
-
+stocks = Tickers( db_file )
+tickers = stocks.tickers
 
 # builds the main MA chart
 def build_ma_graph( sym ):
 
-    with sqlite3.connect( db_file ) as con:
-        # pull the max date
-        sql = 'select max(date) as date from stocks where ticker = ?'
-        cur = con.cursor()
-        cur.execute(sql,(sym,))
-        format = '%Y-%m-%d'
-        end_dt = cur.fetchone()[0].split(' ')[0]
-        end_dt = datetime.strptime(end_dt, format)
+    tik = Ticker( db_file, sym )
+    end_dt = tik.get_max_cached_date()
 
-        # define rest of dates
-        start_dt = end_dt + relativedelta(months=-6)
-        query_start_dt = start_dt + relativedelta(months=-3)
-        graph_start_dt = end_dt + relativedelta(months=-3)
+    # define rest of dates
+    start_dt = end_dt + relativedelta(months=-6)
+    query_start_dt = start_dt + relativedelta(months=-3)
+    graph_start_dt = end_dt + relativedelta(months=-3)
 
-        # pull required data
-        sql = 'select date, open, high, low, close from stocks where date >= "' + str(query_start_dt) + '" and ticker = "' + sym + '" order by date'
-        df = pd.read_sql_query(sql, con=con)
+    # pull required data
+    df = tik.get_cached_data( query_start_dt )
 
-    # clean up data
-    df['date'] = df['date'].astype( 'datetime64' )
-    df = df.set_index('date', drop=True)
-    
     # build averages
     df['close_30day'] = df['close'].rolling(window=30).mean()
     df['close_60day'] = df['close'].rolling(window=60).mean()
-    #df['close_90day'] = df['close'].rolling(window=90).mean()
     
     # limit data
     df = df.loc[start_dt:]
@@ -94,9 +69,6 @@ def build_ma_graph( sym ):
     fig.update_layout(xaxis_range=[graph_start_dt,
                         end_dt ])
     return fig
-
-
-# In[59]:
 
 
 # get URL base
