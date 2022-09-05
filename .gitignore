@@ -1,3 +1,10 @@
 *.html
 data/*
-.ipynb_checkpoints/*
+.ipynb_checkpoints/
+__pycache__
+*.log
+data
+*.prof
+*.swp
+*.DS_Store
+Untitled.ipynb
