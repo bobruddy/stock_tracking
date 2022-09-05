@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
@@ -41,6 +41,21 @@ class Ticker:
         df.columns = df.columns.str.replace(' ', '_')     # replace spaces in names with _
     
         df[ 'ticker' ] = self.sym
+        return df
+
+    # get cached data
+    def get_cached_data( self, start_dt ):
+        import pandas as pd
+
+        # pull required data
+        sql = 'select date, open, high, low, close from tickers where date >= ? and ticker = ? order by date'
+        with sqlite3.connect( self.db_file ) as db_con:
+            df = pd.read_sql_query(sql, con=db_con, params=( start_dt, self.sym ) )
+
+        # clean up data
+        df['date'] = df['date'].astype( 'datetime64' )
+        df = df.set_index('date', drop=True)
+ 
         return df
 
     # get max cached date
@@ -89,12 +104,28 @@ class Ticker:
 
         return df
 
+
+    # get list of tickers
+class Tickers( ):
+    def __init__( self, db_file ):
+        self.db_file = db_file
+
+        # set list of tickers
+        self.tickers = []
+        with sqlite3.connect( db_file ) as con:
+            for row in con.execute('select ticker from tickers group by ticker order by ticker'):
+                self.tickers.append( row[0] )
+
 if __name__ == '__main__':
+
+    stocks = Tickers( 'dataa/stocks.db' )
+    print( stocks.tickers )
+
     # testing
     ticker = Ticker('dataa/stocks.db', 'AMD')
-    print( 'ticker: ' + ticker.sym)
-    print( 'db_file: ' + ticker.db_file)
+    #print( 'ticker: ' + ticker.sym)
+    #print( 'db_file: ' + ticker.db_file)
     
     #print( ticker.pull_data('2022-08-25', '2022-09-02') )
-    print( ticker.get_max_cached_date() )
-    print( ticker.update_ohlc_cache() )
+    #print( ticker.get_max_cached_date() )
+    #print( ticker.update_ohlc_cache() )
