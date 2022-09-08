@@ -6,7 +6,7 @@
 
 import plotly.graph_objects as go
 from dateutil.relativedelta import relativedelta
-from dash import dcc, html, Dash, Input, Output
+from dash import dcc, html, Dash, Input, Output, State
 import os
 from stock import Ticker,Tickers
 
@@ -35,10 +35,10 @@ def build_ma_graph( sym ):
     # build averages
     df['close_30day'] = df['close'].rolling(window=30).mean()
     df['close_60day'] = df['close'].rolling(window=60).mean()
-    
+
     # limit data
     df = df.loc[start_dt:]
-    
+
     fig = go.Figure()
     fig = go.Figure(go.Ohlc(x=df.index,
         open=df['open'],
@@ -46,7 +46,7 @@ def build_ma_graph( sym ):
         low=df['low'],
         close=df['close'],
         showlegend=False))
-    
+
     fig.add_trace(go.Scatter(x=df.index, 
                          y=df['close_30day'], 
                          opacity=0.7, 
@@ -70,6 +70,11 @@ def build_ma_graph( sym ):
                         end_dt ])
     return fig
 
+# update tickers
+def update_selection():
+    # get ticker list
+    stocks = Tickers( db_file )
+    return stocks.tickers
 
 # get URL base
 base_url = os.getenv("DASH_BASE_PATHNAME", '/stocks/')
@@ -82,18 +87,37 @@ app.layout = html.Div([
     # Stock charting
 
 '''),
-    html.Center( dcc.RadioItems(tickers, tickers[0], inline=True, id='selected-ticker') ),
-    dcc.Graph(id='ma-graph')
+    html.Center( dcc.RadioItems(tickers, tickers[1], inline=True, id='selected-ticker') ),
+    dcc.Graph(id='ma-graph'),
+    dcc.Input(id='input-on-submit', type='text'),
+    html.Button('refresh', id='refresh-val', n_clicks=1),
+    html.Div(id='container-button-basic',
+             children='Enter a value and press submit')
 ])
 
 
 
+# updates the graph based on radio selection
 @app.callback(
     Output('ma-graph', 'figure'),
     Input('selected-ticker', 'value'))
-
 def update_figure( sym ):
     return build_ma_graph(sym)
+
+
+@app.callback(
+    Output( component_id = 'container-button-basic', component_property = 'children'),
+    Output( component_id = 'selected-ticker', component_property = 'options'),
+    Output( component_id = 'selected-ticker', component_property = 'value'),
+    Input('refresh-val', 'n_clicks'),
+    State('input-on-submit', 'value'),
+    prevent_initial_call=True
+)
+def update_refresh_ticker(n_clicks, value):
+    ticker = Ticker( db_file, value)
+    r = ticker.update_ohlc_cache()
+    msg = "ticker, " + value + ", refreshed"
+    return msg, update_selection(), value
 
 server = app.server
 if __name__ == '__main__':
