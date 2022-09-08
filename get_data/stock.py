@@ -86,7 +86,8 @@ class Ticker:
             start_dt = self.default_start_dt
 
         # download the data we need
-        df = self.pull_data(start_dt, self.today )
+        end_dt = self.today + relativedelta(days=1)
+        df = self.pull_data(start_dt, end_dt )
 
         # save data to temp table
         with sqlite3.connect( self.db_file ) as db_con:

@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 from dash import dcc, html, Dash, Input, Output, State
 import os
 from stock import Ticker,Tickers
+import yfinance
 
 
 db_file = './data/stocks.db'
@@ -87,22 +88,31 @@ app.layout = html.Div([
     # Stock charting
 
 '''),
-    html.Center( dcc.RadioItems(tickers, tickers[1], inline=True, id='selected-ticker') ),
+    html.Center( dcc.RadioItems(tickers, tickers[0], inline=True, id='selected-ticker') ),
     dcc.Graph(id='ma-graph'),
     dcc.Input(id='input-on-submit', type='text'),
     html.Button('refresh', id='refresh-val', n_clicks=1),
     html.Div(id='container-button-basic',
-             children='Enter a value and press submit')
+             children='Enter a value and press submit'),
+    html.Div(id='container-news', children=[] )
 ])
 
 
 
 # updates the graph based on radio selection
 @app.callback(
-    Output('ma-graph', 'figure'),
-    Input('selected-ticker', 'value'))
+    Output( component_id = 'ma-graph', component_property = 'figure'),
+    Output( component_id = 'container-news', component_property = 'children'),
+    Input( component_id = 'selected-ticker', component_property = 'value'))
 def update_figure( sym ):
-    return build_ma_graph(sym)
+    t = yfinance.Tickers( sym )
+    news = []
+    news.append( html.P( 'News for: ' + sym ) )
+    for n in t.news()[ sym ]:
+        msg = n['title']
+        news.append( html.P(html.A( href=n['link'], title=n['title'], children=n['title'] ) ) )
+
+    return build_ma_graph(sym), news
 
 
 @app.callback(
